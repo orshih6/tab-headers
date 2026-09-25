@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>TabHeaders</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="i-mark" viewBox="0 0 20 20">
+        <rect x="1" y="1" width="18" height="18" rx="4.5" fill="currentColor" />
+        <rect x="4.5" y="5" width="4" height="2.2" rx="1.1" fill="#fff" />
+        <rect x="10" y="5" width="5.5" height="2.2" rx="1.1" fill="#fff" opacity=".7" />
+        <rect x="4.5" y="8.9" width="4" height="2.2" rx="1.1" fill="#fff" />
+        <rect x="10" y="8.9" width="3.5" height="2.2" rx="1.1" fill="#fff" opacity=".7" />
+        <rect x="4.5" y="12.8" width="4" height="2.2" rx="1.1" fill="#fff" />
+        <rect x="10" y="12.8" width="5.5" height="2.2" rx="1.1" fill="#fff" opacity=".7" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 16 16">
+        <path d="M2.75 4.25h10.5M6.25 4.25V2.75h3.5v1.5M4.25 4.25l.6 8.2a1 1 0 0 0 1 .93h4.3a1 1 0 0 0 1-.93l.6-8.2" />
+      </symbol>
+      <symbol id="i-reload" viewBox="0 0 16 16">
+        <path d="M13.25 8a5.25 5.25 0 1 1-1.54-3.71" /><path d="M13.25 2.75v2.5h-2.5" />
+      </symbol>
+      <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M6 3.75 10.25 8 6 12.25" /></symbol>
+      <symbol id="i-alert" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="5.75" /><path d="M8 5v3.5" /><path d="M8 10.9v.1" />
+      </symbol>
+      <symbol id="i-save" viewBox="0 0 16 16">
+        <path d="M4 2.75h6.5l2.75 2.75v7.25a.5.5 0 0 1-.5.5H3.25a.5.5 0 0 1-.5-.5V3.25a.5.5 0 0 1 .5-.5Z" />
+        <path d="M5.5 2.75v3h4.5v-3M5.25 13.25v-4h5.5v4" />
+      </symbol>
+    </svg>
+
+    <header class="bar">
+      <h1 class="brand"><svg class="mark" aria-hidden="true"><use href="#i-mark" /></svg>TabHeaders</h1>
+      <label class="switch-label" title="Turn headers on or off in every tab">
+        <span id="global-label">On</span>
+        <input type="checkbox" role="switch" aria-checked="true" class="switch" id="global-on" />
+      </label>
+    </header>
+
+    <main>
+      <section class="tab" aria-labelledby="tab-host">
+        <div class="tab-head">
+          <div class="tab-id">
+            <h2 id="tab-host" class="host">—</h2>
+            <p id="status" class="status"><span class="dot" aria-hidden="true"></span><span id="status-text"></span></p>
+          </div>
+          <button
+            type="button"
+            id="reload"
+            class="btn btn-primary"
+            title="Reload the page so its requests carry the current headers"
+            hidden
+          >
+            <svg class="icon" aria-hidden="true"><use href="#i-reload" /></svg><span>Reload</span>
+          </button>
+          <input type="checkbox" role="switch" aria-checked="true" class="switch" id="tab-on" aria-label="Send headers in this tab" />
+        </div>
+
+        <div id="notice" class="notice" role="status" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg>
+          <div><strong id="notice-title"></strong><span id="notice-body"></span></div>
+        </div>
+
+        <div id="headers" class="headers">
+          <ul id="rows" class="rows"></ul>
+          <div id="empty" class="empty" hidden>
+            <p>Headers you add here are sent with every request <em>this tab</em> makes. Other tabs aren’t affected.</p>
+            <p class="muted">Tip: paste lines like <code>x-customer-id: tenant-a</code> into the name field to add several at once.</p>
+          </div>
+          <button type="button" id="add" class="btn btn-quiet add">
+            <svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg><span>Add header</span>
+          </button>
+
+          <details id="domains-box" class="domains">
+            <summary>
+              <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron" /></svg>
+              <span>Limit to domains</span>
+              <span id="domains-summary" class="muted"></span>
+            </summary>
+            <div class="domains-body">
+              <input
+                type="text"
+                id="domains"
+                placeholder="api.example.com, example.org"
+                spellcheck="false"
+                aria-describedby="domains-hint"
+              />
+              <p id="domains-hint" class="hint">Subdomains are included. Leave empty to send on every request.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="profiles">
+      <div class="line">
+        <label class="visually-hidden" for="profile-select">Profile</label>
+        <select id="profile-select"></select>
+        <button type="button" id="profile-apply" class="btn btn-secondary">Apply</button>
+        <button type="button" id="profile-delete" class="btn btn-icon" aria-label="Delete profile" title="Delete profile">
+          <svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg>
+        </button>
+      </div>
+      <form id="profile-form" class="line">
+        <label class="visually-hidden" for="profile-name">Profile name</label>
+        <input type="text" id="profile-name" placeholder="Save these headers as…" spellcheck="false" />
+        <button type="submit" id="profile-save" class="btn btn-secondary">
+          <svg class="icon" aria-hidden="true"><use href="#i-save" /></svg><span>Save</span>
+        </button>
+      </form>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+      <span id="toast-text"></span>
+      <button type="button" id="toast-undo" class="btn btn-link">Undo</button>
+    </div>
+
+    <template id="row-template">
+      <li class="row">
+        <input type="checkbox" class="row-on" aria-label="Send this header" />
+        <div class="pair">
+          <input type="text" class="row-name" placeholder="x-my-header" spellcheck="false" aria-label="Header name" />
+          <span class="colon" aria-hidden="true">:</span>
+          <input type="text" class="row-value" placeholder="value" spellcheck="false" aria-label="Header value" />
+        </div>
+        <button type="button" class="row-remove btn btn-icon" aria-label="Remove header" title="Remove header">
+          <svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg>
+        </button>
+        <p class="row-msg" hidden></p>
+      </li>
+    </template>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
